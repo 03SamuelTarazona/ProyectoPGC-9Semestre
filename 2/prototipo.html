@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Diagnóstico de Enfermedades en Tomate</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+</head>
+<body>
+
+<h2>Captura de Imagen</h2>
+
+<video id="video" width="224" height="224" autoplay></video><br>
+<button onclick="capturar()">Capturar</button>
+<button onclick="predecir()">Predecir</button><br>
+
+<canvas id="canvas" width="224" height="224"></canvas>
+
+<script>
+
+let model;
+
+// Cargar modelo
+async function cargarModelo() {
+    model = await tf.loadLayersModel('tfjs_model/model.json');
+    console.log("Modelo cargado");
+}
+cargarModelo();
+
+// Activar cámara
+navigator.mediaDevices.getUserMedia({ video: true })
+.then(stream => {
+    document.getElementById("video").srcObject = stream;
+});
+
+// Capturar imagen
+function capturar() {
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, 224, 224);
+}
+
+// Predecir
+function predecir() {
+    const canvas = document.getElementById("canvas");
+
+    let tensor = tf.browser.fromPixels(canvas)
+        .resizeNearestNeighbor([224, 224])
+        .toFloat()
+        .div(255.0)
+        .expandDims();
+
+    let pred = model.predict(tensor);
+    pred.print();
+}
+
+</script>
+
+</body>
+</html>
